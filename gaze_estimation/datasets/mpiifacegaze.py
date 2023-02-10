@@ -20,10 +20,13 @@ class OnePersonDataset(Dataset):
             image = f.get(f'{self.person_id_str}/image/{index:04}')[()]
             pose = f.get(f'{self.person_id_str}/pose/{index:04}')[()]
             gaze = f.get(f'{self.person_id_str}/gaze/{index:04}')[()]
+            landmarks = f.get(f'{self.person_id_str}/landmarks/{index:04}')[()]
         image = self.transform(image)
         pose = torch.from_numpy(pose)
         gaze = torch.from_numpy(gaze)
-        return image, pose, gaze
+        landmarks = torch.from_numpy(landmarks)
+
+        return image, pose, gaze, landmarks
 
     def __len__(self) -> int:
         return 3000

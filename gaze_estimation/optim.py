@@ -21,7 +21,8 @@ def get_param_list(config: yacs.config.CfgNode,
                 })
     else:
         param_list = [{
-            'params': list(model.parameters()),
+            #'params': list(model.parameters()),
+            'params': list(filter(lambda p: p.requires_grad, model.parameters())),
             'weight_decay': config.train.weight_decay,
         }]
     return param_list
@@ -30,7 +31,7 @@ def get_param_list(config: yacs.config.CfgNode,
 def create_optimizer(config: yacs.config.CfgNode,
                      model: torch.nn.Module) -> Any:
     params = get_param_list(config, model)
-
+    
     if config.train.optimizer == 'sgd':
         optimizer = torch.optim.SGD(params,
                                     lr=config.train.base_lr,

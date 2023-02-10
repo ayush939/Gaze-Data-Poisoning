@@ -1,7 +1,7 @@
 mode: MPIIFaceGaze
 device: cuda
 dataset:
-  dataset_dir: datasets/MPIIFaceGaze.h5
+  dataset_dir: datasets/MPIIFaceGaze1.h5
 transform:
   mpiifacegaze_face_size: 224
   mpiifacegaze_gray: False

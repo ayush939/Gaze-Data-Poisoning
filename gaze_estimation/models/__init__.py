@@ -12,3 +12,12 @@ def create_model(config: yacs.config.CfgNode) -> torch.nn.Module:
     device = torch.device(config.device)
     model.to(device)
     return model
+
+def create_pmodel(config: yacs.config.CfgNode) -> torch.nn.Module:
+    dataset_name = config.mode.lower()
+    module = importlib.import_module(
+        f'gaze_estimation.models.{dataset_name}.alexnet')
+    model = module.Model(config)
+    device = torch.device(config.device)
+    model.to(device)
+    return model

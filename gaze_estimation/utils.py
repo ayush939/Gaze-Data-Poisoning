@@ -6,7 +6,7 @@ from typing import Tuple
 import numpy as np
 import torch
 import yacs.config
-
+import torchvision
 from .config import get_default_config
 
 
@@ -62,24 +62,26 @@ def create_train_output_dir(config: yacs.config.CfgNode) -> pathlib.Path:
 def convert_to_unit_vector(
         angles: torch.Tensor
 ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    pitches = angles[:, 0]
-    yaws = angles[:, 1]
-    x = -torch.cos(pitches) * torch.sin(yaws)
-    y = -torch.sin(pitches)
-    z = -torch.cos(pitches) * torch.cos(yaws)
-    norm = torch.sqrt(x**2 + y**2 + z**2)
-    x /= norm
-    y /= norm
-    z /= norm
-    return x, y, z
+    with torch.no_grad():
+        pitches = angles[:, 0]
+        yaws = angles[:, 1]
+        x = -torch.cos(pitches) * torch.sin(yaws)
+        y = -torch.sin(pitches)
+        z = -torch.cos(pitches) * torch.cos(yaws)
+        norm = torch.sqrt(x**2 + y**2 + z**2)
+        x /= norm
+        y /= norm
+        z /= norm
+        return x, y, z
 
 
 def compute_angle_error(predictions: torch.Tensor,
                         labels: torch.Tensor) -> torch.Tensor:
-    pred_x, pred_y, pred_z = convert_to_unit_vector(predictions)
-    label_x, label_y, label_z = convert_to_unit_vector(labels)
-    angles = pred_x * label_x + pred_y * label_y + pred_z * label_z
-    return torch.acos(angles) * 180 / np.pi
+    with torch.no_grad():
+        pred_x, pred_y, pred_z = convert_to_unit_vector(predictions)
+        label_x, label_y, label_z = convert_to_unit_vector(labels)
+        angles = pred_x * label_x + pred_y * label_y + pred_z * label_z
+        return torch.acos(angles) * 180 / np.pi
 
 
 class AverageMeter:
@@ -97,3 +99,12 @@ class AverageMeter:
         self.sum += val * num
         self.count += num
         self.avg = self.sum / self.count
+
+
+def fgsm(gradz, step_size):
+    return step_size*torch.sign(gradz)
+
+def norm_img(images):
+    norm = torchvision.transforms.Normalize(mean=[0.406, 0.456, 0.485],
+                                         std=[0.225, 0.224, 0.229])
+    return norm(images)

@@ -12,12 +12,13 @@ def add_mat_data_to_hdf5(person_id: str, dataset_dir: pathlib.Path,
                          output_path: pathlib.Path) -> None:
     with h5py.File(dataset_dir / f'{person_id}.mat', 'r') as f_input:
         images = f_input.get('Data/data')[()]
-        labels = f_input.get('Data/label')[()][:, :4]
+        labels = f_input.get('Data/label')[()] #[:, :4]
     assert len(images) == len(labels) == 3000
 
     images = images.transpose(0, 2, 3, 1).astype(np.uint8)
-    poses = labels[:, 2:]
+    poses = labels[:, 2:4]
     gazes = labels[:, :2]
+    landmarks = labels[:,4:]
 
     with h5py.File(output_path, 'a') as f_output:
         for index, (image, gaze,
@@ -27,6 +28,7 @@ def add_mat_data_to_hdf5(person_id: str, dataset_dir: pathlib.Path,
                                     data=image)
             f_output.create_dataset(f'{person_id}/pose/{index:04}', data=pose)
             f_output.create_dataset(f'{person_id}/gaze/{index:04}', data=gaze)
+            f_output.create_dataset(f'{person_id}/landmarks/{index:04}', data=landmarks)
 
 
 def main():
@@ -37,7 +39,7 @@ def main():
 
     output_dir = pathlib.Path(args.output_dir)
     output_dir.mkdir(exist_ok=True, parents=True)
-    output_path = output_dir / 'MPIIFaceGaze.h5'
+    output_path = output_dir / 'MPIIFaceGaze1.h5'
     if output_path.exists():
         raise ValueError(f'{output_path} already exists.')
 

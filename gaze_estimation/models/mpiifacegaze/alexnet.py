@@ -30,6 +30,7 @@ class Model(nn.Module):
 
         self._register_hook()
         self._initialize_weight()
+        self.gradients = None
 
     def _initialize_weight(self) -> None:
         nn.init.normal_(self.conv1.weight, mean=0, std=0.01)
@@ -56,9 +57,13 @@ class Model(nn.Module):
             return tuple(grad / n_channels for grad in grad_in)
 
         self.conv3.register_backward_hook(hook)
+    
+    def activations_hook(self, grad):
+        self.gradients = grad
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.feature_extractor(x)
+        #h = x.register_hook(self.activations_hook)
         y = F.relu(self.conv1(x))
         y = F.relu(self.conv2(y))
         y = F.relu(self.conv3(y))
@@ -68,3 +73,11 @@ class Model(nn.Module):
         x = F.dropout(F.relu(self.fc2(x)), p=0.5, training=self.training)
         x = self.fc3(x)
         return x
+
+     # method for the gradient extraction
+    def get_activations_gradient(self):
+        return self.gradients
+    
+    # method for the activation exctraction
+    def get_activations(self, x):
+        return self.feature_extractor[:-2](x)

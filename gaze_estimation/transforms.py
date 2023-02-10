@@ -49,8 +49,8 @@ def _create_mpiifacegaze_transform(config: yacs.config.CfgNode) -> Any:
         to_gray,
         torchvision.transforms.Lambda(lambda x: x.transpose(2, 0, 1)),
         scale,
-        torch.from_numpy,
-        torchvision.transforms.Normalize(mean=[0.406, 0.456, 0.485],
-                                         std=[0.225, 0.224, 0.229]),
+        torch.from_numpy#,
+        #torchvision.transforms.Normalize(mean=[0.406, 0.456, 0.485],
+        #                                 std=[0.225, 0.224, 0.229]),
     ])
     return transform
